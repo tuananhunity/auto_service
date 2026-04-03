@@ -3,3 +3,6 @@ webdriver-manager
 python-dotenv
 pre-commit
 customtkinter
+flask
+flask-socketio
+flask-cors

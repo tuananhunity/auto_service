@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "FB Auto Bot",
+    "slug": "fb-auto-bot",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0a0e1a"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0a0e1a"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.autoservice.fbbot"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
