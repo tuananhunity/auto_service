@@ -50,46 +50,50 @@ python3 gui.py
 Mặc dù công cụ được tối ưu chống Bot (Anti-detect), nhưng nếu bạn thiết lập bình luận **quá nhanh** (delay siêu ngắn) hay thiết lập **quá nhiều** (Max Post: 1000) trong thời gian ngắn, hệ thống AI đo lường tần suất của Facebook vẫn có thể tạm thời khóa mõm (Block Comment) của tài khoản bạn vài ngày do vi phạm Tiêu chuẩn Cộng đồng. Hãy thiết lập một cách từ từ và có khoa học!
 ---
 
-## 📱 Điều khiển từ xa (Web & Mobile)
+## 📂 Cấu trúc Dự án
 
-Bản cập nhật mới hỗ trợ điều khiển Bot từ xa thông qua giao diện Web và ứng dụng điện thoại Android.
+Dự án hiện tại được chia làm 2 phần độc lập:
 
-### 1. Khởi chạy Backend (trên Máy tính)
-Để các giao diện từ xa hoạt động, bạn cần chạy Flask server trên máy tính (nơi đang chạy Bot):
+1.  **`web/`**: Chứa code Python + Selenium + Flask. Dùng để chạy bot trên máy tính hoặc điều khiển từ xa qua trình duyệt.
+2.  **`mobile/`**: Chứa code **AutoJS (JavaScript)**. Dùng để chạy bot tự động 100% trên điện thoại Android mà không cần máy tính.
+
+---
+
+## 💻 Hướng dẫn Web & Desktop (`web/`)
+
+### 1. Khởi chạy Giao diện Desktop
 ```bash
+cd web
+python3 gui.py
+```
+
+### 2. Khởi chạy Backend Điều khiển từ xa
+```bash
+cd web
 python3 server.py
 ```
-*Giao diện Web sẽ mặc định chạy tại: `http://localhost:5000`*
+*Truy cập dashboard tại: `http://localhost:5000`*
 
-### 2. Giao diện Web Dashboard
-Bạn có thể mở trình duyệt trên máy tính hoặc điện thoại (cùng mạng WiFi) để truy cập vào địa chỉ IP của máy tính:
-- Tại máy: `http://localhost:5000`
-- Thiết bị khác: `http://<IP-MÁY-TÍNH>:5000`
+---
 
-### 3. Ứng dụng Android (Mobile App)
-Ứng dụng được xây dựng bằng Expo (React Native).
+## 📱 Hướng dẫn Mobile AutoJS (`mobile/`)
 
-**Chạy qua Expo Go (Để test nhanh):**
-1. Cài đặt ứng dụng **Expo Go** trên điện thoại từ Play Store.
-2. Tại máy tính, di chuyển vào thư mục mobile và chạy:
-   ```bash
-   cd mobile
-   npm install
-   npx expo start
-   ```
-3. Quét mã QR hiện lên bằng ứng dụng Expo Go.
-4. Vào tab **Settings** trong app và nhập IP máy tính (ví dụ: `http://192.168.1.100:5000`).
+Giải pháp này cho phép bot tự động bình luận trực tiếp trên App Facebook thật của điện thoại.
 
-**Build & Chạy local (Dành cho Developer):**
-Sử dụng lệnh sau để thiết lập môi trường và chạy trực tiếp vào điện thoại (đã cắm cáp USB & bật Debug):
-```bash
-# Thiết lập SDK và Port Forwarding, sau đó build
-export ANDROID_HOME="$HOME/Android/Sdk" && \
-export PATH="$PATH:$ANDROID_HOME/platform-tools" && \
-adb reverse tcp:8081 tcp:8081 && \
-cd mobile && npx expo run:android
-```
-*Lưu ý: Đảm bảo bạn đã cài đặt Android SDK tại thư mục `$HOME/Android/Sdk`.*
+### 1. Cài đặt trên điện thoại
+1.  Tải và cài đặt ứng dụng **AutoJS** (Bản Pro hoặc bản miễn phí hỗ trợ Accessibility).
+2.  Cấp quyền **Accessibility Service** (Dịch vụ hỗ trợ) cho AutoJS trong cài đặt điện thoại.
+
+### 2. Chạy Bot
+1.  Copy toàn bộ thư mục `mobile/` vào bộ nhớ điện thoại (hoặc copy nội dung file `main.js`).
+2.  Mở AutoJS → Chọn file `main.js` → Nhấn nút **Play (Chạy)**.
+3.  **Sử dụng Dashboard:**
+    -   Nhập danh sách Group URL và Câu bình luận vào tab **Dữ liệu**.
+    -   Quay lại tab **Điều khiển** → Nhấn **BẮT ĐẦU CHẠY**.
+    -   Bot sẽ tự mở Facebook và thực hiện các thao tác bình luận.
+
+> [!TIP]
+> Bạn nên bật quyền "Xuất hiện trên cùng" (Draw over other apps) để AutoJS có thể hiển thị bảng điều khiển và log khi đang chạy.
 
 ---
 # auto_service
