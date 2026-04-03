@@ -92,8 +92,13 @@ Giải pháp này cho phép bot tự động bình luận trực tiếp trên Ap
     -   Quay lại tab **Điều khiển** → Nhấn **BẮT ĐẦU CHẠY**.
     -   Bot sẽ tự mở Facebook và thực hiện các thao tác bình luận.
 
-> [!TIP]
-> Bạn nên bật quyền "Xuất hiện trên cùng" (Draw over other apps) để AutoJS có thể hiển thị bảng điều khiển và log khi đang chạy.
+### 3. Đẩy code nhanh qua ADB (Dành cho Dev)
+Nếu bạn lười copy file thủ công, hãy cắm cáp USB và chạy lệnh này trên máy tính để đẩy code thẳng vào điện thoại:
+```bash
+# Đẩy file main.js vào thư mục download của điện thoại
+adb push mobile/main.js /sdcard/Download/
+```
+*Sau đó trong AutoJS, bạn chỉ cần mở file từ thư mục Download và chạy.*
 
 ---
 # auto_service
