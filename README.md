@@ -80,16 +80,16 @@ Bạn có thể mở trình duyệt trên máy tính hoặc điện thoại (cù
 3. Quét mã QR hiện lên bằng ứng dụng Expo Go.
 4. Vào tab **Settings** trong app và nhập IP máy tính (ví dụ: `http://192.168.1.100:5000`).
 
-**Build & Chạy local (Không qua Expo Cloud):**
-Nếu bạn có cài **Android Studio & SDK** trên máy, bạn có thể build và cài trực tiếp vào điện thoại cắm cáp:
+**Build & Chạy local (Dành cho Developer):**
+Sử dụng lệnh sau để thiết lập môi trường và chạy trực tiếp vào điện thoại (đã cắm cáp USB & bật Debug):
 ```bash
-cd mobile
-# Tạo thư mục android/ (Prebuild)
-npx expo prebuild
-# Build và chạy thẳng vào máy (yêu cầu bật USB Debugging)
-npx expo run:android
+# Thiết lập SDK và Port Forwarding, sau đó build
+export ANDROID_HOME="$HOME/Android/Sdk" && \
+export PATH="$PATH:$ANDROID_HOME/platform-tools" && \
+adb reverse tcp:8081 tcp:8081 && \
+cd mobile && npx expo run:android
 ```
-*Lưu ý: Cách này sẽ tạo ra folder `android/` trong thư mục `mobile/` và build code native trực tiếp trên máy của bạn.*
+*Lưu ý: Đảm bảo bạn đã cài đặt Android SDK tại thư mục `$HOME/Android/Sdk`.*
 
 ---
 # auto_service
