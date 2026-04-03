@@ -2,12 +2,20 @@
   "name": "mobile",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "App.tsx",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs"
+  "type": "commonjs",
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "1.24.0",
+    "expo": "55.0.11",
+    "expo-status-bar": "55.0.5",
+    "react": "19.2.3",
+    "react-native": "0.83.4",
+    "react-native-webview": "13.16.1"
+  }
 }
