@@ -80,13 +80,16 @@ Bạn có thể mở trình duyệt trên máy tính hoặc điện thoại (cù
 3. Quét mã QR hiện lên bằng ứng dụng Expo Go.
 4. Vào tab **Settings** trong app và nhập IP máy tính (ví dụ: `http://192.168.1.100:5000`).
 
-**Build file APK (Để cài đặt lâu dài):**
-Bạn có thể sử dụng dịch vụ Cloud của Expo để build file cài đặt:
+**Build & Chạy local (Không qua Expo Cloud):**
+Nếu bạn có cài **Android Studio & SDK** trên máy, bạn có thể build và cài trực tiếp vào điện thoại cắm cáp:
 ```bash
 cd mobile
-npx eas build --platform android --profile preview
+# Tạo thư mục android/ (Prebuild)
+npx expo prebuild
+# Build và chạy thẳng vào máy (yêu cầu bật USB Debugging)
+npx expo run:android
 ```
-*Sau khi chạy, Expo sẽ cung cấp link tải file `.apk` để bạn cài trực tiếp vào điện thoại.*
+*Lưu ý: Cách này sẽ tạo ra folder `android/` trong thư mục `mobile/` và build code native trực tiếp trên máy của bạn.*
 
 ---
 # auto_service
