@@ -54,22 +54,22 @@ Mặc dù công cụ được tối ưu chống Bot (Anti-detect), nhưng nếu 
 
 Dự án hiện tại được chia làm 2 phần độc lập:
 
-1.  **`web/`**: Chứa code Python + Selenium + Flask. Dùng để chạy bot trên máy tính hoặc điều khiển từ xa qua trình duyệt.
+1.  **`app/`**: Chứa code Python + Selenium + Flask. Dùng để chạy bot trên máy tính hoặc điều khiển từ xa qua trình duyệt.
 2.  **`mobile/`**: Chứa code **React Native (Standalone APK)**. Dùng để build thành 1 file APK chạy bot tự động 100% trên điện thoại mà không cần máy tính.
 
 ---
 
-## 💻 Hướng dẫn Web & Desktop (`web/`)
+## 💻 Hướng dẫn Web & Desktop (`app/`)
 
 ### 1. Khởi chạy Giao diện Desktop
 ```bash
-cd web
+cd app
 python3 gui.py
 ```
 
 ### 2. Khởi chạy Backend Điều khiển từ xa
 ```bash
-cd web
+cd app
 python3 server.py
 ```
 *Truy cập dashboard tại: `http://localhost:5000`*
