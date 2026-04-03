@@ -1,236 +1,51 @@
-# 📢 Facebook Comment Bot
+# 📢 Bot Tự Động Bình Luận Facebook (Có Giao Diện)
 
-![Facebook Comment Bot](https://img.shields.io/badge/Facebook%20Comment-Bot-blue)
-![Python](https://img.shields.io/badge/Python-3.7%2B-blue)
-![OpenAI](https://img.shields.io/badge/OpenAI-GPT4-green)
+Chương trình này là một công cụ tự động hóa hành vi rảnh tay (Browser Automation) sử dụng **Selenium**, được thiết kế để tự động bình luận trên nền tảng Facebook (hỗ trợ cả bài viết cá nhân lẫn bài viết trong Hội Nhóm/Group). 
 
-A **Selenium-based bot** designed to automatically post **human-like comments** on a specified Facebook post using **OpenAI's language models**. This bot simulates genuine user interactions to enhance engagement on your Facebook posts.
+Đặc biệt, công cụ này đã được **vô hiệu hóa việc trích xuất token OpenAI tốn phí**, và thay vào đó lấy bình luận trực tiếp từ file văn bản tĩnh trên máy bạn để hoàn toàn **miễn phí 100%**.
 
 ---
 
-## 📋 Table of Contents
+## 🌟 Tại sao không cần Token? (Giải thích luồng hoạt động)
 
-- [🌟 Features](#🌟-features)
-- [🔧 Prerequisites](#🔧-prerequisites)
-- [💻 Installation](#💻-installation)
-- [⚙️ Configuration](#⚙️-configuration)
-- [🚀 Usage](#🚀-usage)
-- [🔑 Handling Login](#🔑-handling-login)
-- [📝 Logging and Debugging](#📝-logging-and-debugging)
-- [⚠️ Ethical Considerations](#⚠️-ethical-considerations)
-- [🛠️ Troubleshooting](#🛠️-troubleshooting)
-- [📄 License](#📄-license)
-- [📞 Contact](#📞-contact)
-- [🔗 Acknowledgements](#🔗-acknowledgements)
+Phần lớn các tool bot trên mạng yêu cầu **Access Token** hoặc **Cookie** qua API để gửi request tới máy chủ Facebook. Tuy nhiên, cách đó rất dễ bị Facebook khóa tài khoản (Check-point) vì nó phát hiện ra hành vi bất thường của máy móc.
 
----
+Tool này hoạt động theo mô hình **Ngụy trang con người (Human Like Simulation)**:
+1. Nó **Mở một trình duyệt Google Chrome thật sự** lên màn hình.
+2. Nó tái sử dụng chính tài khoản Facebook bạn đã đăng nhập để lướt web (không lấy cắp Cookie gửi lên mạng). Bạn chỉ việc đăng nhập một lần bằng tay, trình duyệt sẽ lưu phiên đăng nhập đó vào thư mục `chrome_data` nằm trên máy tính của bạn.
+3. Nó **tự động phân tích màn hình** trang Facebook, tìm xem ô gõ bình luận nằm ở đâu.
+4. Nó tự tạo ra thao tác **di chuyển chuột**, click chuột giống tay người.
+5. Nó lấy các câu lập trình sẵn từ file text, sau đó **nhập từng ký tự một** với tốc độ chập chờn (cố tình gõ sai rồi xóa đi gõ lại) giống y hệt một người dùng bình thường đang ngồi ấn phím.
+6. Sau khi Enter, nó sẽ cuộn chuột xuống bài đăng tiếp theo của Hội Nhóm và lặp lại vòng lặp.
 
-## 🌟 Features
-
-- **Automated Commenting:** Automatically generate and post comments on a specified Facebook post.
-- **Human-like Interactions:** Simulates human behavior with random pauses, mouse movements, and typing patterns to mimic genuine user interactions.
-- **OpenAI Integration:** Utilizes OpenAI's language models to generate contextually relevant and engaging comments.
-- **Robust Logging:** Comprehensive logging for monitoring bot activities and debugging.
-- **Error Handling:** Captures and logs errors, raising exceptions for critical issues.
+Nhờ việc bắt chước thao tác người thật như vậy, bạn **không cần thao tác Token phức tạp** nào cả mà vẫn vượt qua được các chốt chặn phát hiện Bot của nền tảng web.
 
 ---
 
-## 🔧 Prerequisites
+## 🛠️ Hướng dẫn sử dụng
 
-Before setting up the bot, ensure you have the following:
+### 1. Chuẩn bị nội dung bình luận
+Mở file `comments.txt` nằm chung thư mục. Hãy nhập vào tất cả các câu bình luận mà bạn muốn bot tự động gõ. 
+Mỗi bình luận viết trên 1 dòng. Tool sẽ chọn ngẫu nhiên một dòng để bình luận vào giao diện.
 
-- **Python 3.7 or Higher:** [Download Python](https://www.python.org/downloads/)
-- **Google Chrome Browser:** Ensure it's installed on your system.
-- **ChromeDriver:** Managed automatically by `webdriver-manager`, so no manual setup is required.
-- **OpenAI API Key:** Sign up at [OpenAI](https://platform.openai.com/signup/) to obtain your API key.
-- **Facebook Account:** A Facebook account to post comments.
+### 2. Khởi chạy Ứng dụng
+Bạn đã cài đặt xong môi trường, từ giờ bạn chỉ cần mở Terminal và gõ:
+```bash
+python3 gui.py
+```
+> Lúc này cửa sổ **tối màu (Dark Mode)** của ứng dụng sẽ xuất hiện.
 
----
+### 3. Thiết lập thông số & Chạy
+- **Group/Post URL:** Dán link của Nhóm (Group) hoặc Bài viết (Post) mà bạn muốn thả bình luận.
+- **Max Posts:** Giới hạn tổng số lượng bài viết mà script sẽ cày (Ví dụ: 10 bài là ngưng).
+- **Delay:** Thời gian nghỉ ngơi để uống nước giữa 2 bài liên tiếp (Nên để 5-10 giây để an toàn).
+- **Bắt đầu (Start Bot):** Nhấn nút này lúc đã sẵn sàng.
 
-## 💻 Installation
-
-1. **Clone the Repository:**
-
-   ```bash
-   git clone https://github.com/thanhduy1706/ai-comment-bot.git
-   cd ai-comment-bot
-   ```
-
-2. **Create a Virtual Environment (Optional but Recommended):**
-
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. **Install Required Packages:**
-
-   Ensure you have pip installed. Then run:
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-   `requirements.txt` Content:
-
-   ```
-   selenium
-   webdriver-manager
-   openai==0.28
-   python-dotenv
-   pre-commit
-   ```
+> **LƯU Ý LẦN ĐẦU TIÊN CHẠY:**
+> Khi Trình duyệt web tự động hiện lên, nếu Facebook yêu cầu, hãy tự động gõ mật khẩu đăng nhập Facebook của bạn vào trình duyệt. Sau khi đăng nhập xong, bot sẽ nạp lại trang và bắt đầu đi "spam dạo". Các lần chạy lại hôm sau bạn không cần đăng nhập nữa.
 
 ---
 
-## ⚙️ Configuration
-
-1. **Create a `.env` File:**
-
-   In the root directory of the project, create a `.env` file to store your sensitive information.
-
-2. **Populate the `.env` File:**
-
-   Open the `.env` file in a text editor and add the following configurations:
-
-   ```makefile
-   OPENAI_API_KEY=your_openai_api_key_here
-   OPENAI_MODEL=gpt-4o-mini
-   OPENAI_PROMPT=Generate a friendly, specific, and engaging Facebook comment.
-   POST_URL=https://www.facebook.com/your_post_url_here
-   ```
-
-   Replace:
-
-   - `your_openai_api_key_here` with your actual OpenAI API key.
-   - `gpt-4o-mini` with the desired OpenAI model (e.g., `gpt-4`, `gpt-4-turbo`, `gpt-4o-mini`).
-   - `Generate a friendly, specific, and engaging Facebook comment.` with your desired OpenAI prompt.
-   - `https://www.facebook.com/your_post_url_here` with the URL of the Facebook post you want to comment on.
-
----
-
-## 🚀 Usage
-
-Follow these steps to run the Facebook Comment Bot:
-
-1. **Ensure Environment Variables are Set:**
-
-   Double-check your `.env` file to ensure all required variables are correctly set.
-
-2. **Run the Script:**
-
-   Execute the bot using the following command:
-
-   ```bash
-   python cmt.py
-   ```
-
-3. **Bot Execution Flow:**
-
-   - **Initialization:** The bot sets up the Chrome WebDriver with specified options to minimize detection.
-   - **Navigating to Post:** It navigates to the specified Facebook post URL.
-   - **Commenting Process:**
-     - The bot generates comments using OpenAI's API.
-     - Simulates human-like typing and interactions to post comments.
-     - Repeats the process based on `MAX_COMMENTS` and `MAX_ITERATIONS` settings.
-     - Periodically refreshes the page to maintain session stability.
-
-   **Example Command:**
-
-   ```bash
-   python cmt.py
-   ```
-
----
-
-## 🔑 Handling Login
-
-**Manual Login Process:**
-
-- **Step 1:** If not logged in, you need opens a new tab directing to Facebook's login page.
-- **Step 2:** Manually log in to Facebook in the newly opened tab.
-- **Step 3:** After successfully logging in, closes the login tab.
-- **Step 4:** Refreshes the main tab, and resumes the commenting process.
-
-_Note: This manual login step ensures that your credentials remain secure and adheres to Facebook's policies by avoiding automated login attempts._
-
----
-
-## 📝 Logging and Debugging
-
-The bot maintains detailed logs to monitor its activities and assist in debugging:
-
-1. **Log Files:**
-
-   - Stored in the `logs/` directory.
-   - Named using the timestamp format: `facebook_comment_bot_YYYYMMDD_HHMMSS.log`.
-
-2. **Log Levels:**
-
-   - `INFO`: General operational messages (e.g., driver setup, comment posting).
-   - `DEBUG`: Detailed information useful for debugging (e.g., pauses, mouse movements).
-   - `WARNING`: Non-critical issues (e.g., failed comment posts).
-   - `ERROR`: Critical problems that may halt execution.
-   - `CRITICAL`: Severe issues requiring immediate attention.
-
----
-
-## ⚠️ Ethical Considerations
-
-**Important:** Automating interactions on platforms like Facebook can violate their Terms of Service and Community Standards. Use such bots responsibly and ethically, ensuring compliance with all relevant policies.
-
-**Potential Risks:**
-
-- **Account Restrictions or Bans:** Automated actions can lead to your Facebook account being restricted or banned.
-- **Legal Implications:** Depending on jurisdiction and usage, there could be legal consequences.
-
-**Recommendation:** Use this bot for educational purposes only and ensure you have the necessary permissions to interact with the targeted Facebook posts.
-
----
-
-## 🛠️ Troubleshooting
-
-**Issue:** Bot fails to post comments.
-
-**Solution:**
-
-- Ensure you're logged into Facebook. If prompted, follow the manual login steps.
-- Check the `logs/` directory for detailed error messages.
-- Update the `COMMENT_BOX_XPATH` in the `CONFIG` if Facebook has updated its UI.
-
-**Issue:** "element click intercepted" error persists.
-
-**Solution:**
-
-- Enhance the `close_overlays` method to handle new pop-ups or overlays.
-- Implement additional delays to ensure elements are fully loaded.
-- Use more robust selectors to accurately locate the comment box.
-
-**Issue:** Unable to locate comment box.
-
-**Solution:**
-
-- Verify the `COMMENT_BOX_XPATH` in the `CONFIG`.
-- Update the XPath based on the current Facebook UI.
-- Ensure that Facebook hasn't changed the structure or labels of the comment box.
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
----
-
-## 📞 Contact
-
-For any inquiries or support, please contact thanhduy1706@gmail.com.
-
----
-
-## 🔗 Acknowledgements
-
-- Selenium
-- WebDriver Manager
-- OpenAI
-- Python-dotenv
+## ⚠️ Lưu ý an toàn
+Mặc dù công cụ được tối ưu chống Bot (Anti-detect), nhưng nếu bạn thiết lập bình luận **quá nhanh** (delay siêu ngắn) hay thiết lập **quá nhiều** (Max Post: 1000) trong thời gian ngắn, hệ thống AI đo lường tần suất của Facebook vẫn có thể tạm thời khóa mõm (Block Comment) của tài khoản bạn vài ngày do vi phạm Tiêu chuẩn Cộng đồng. Hãy thiết lập một cách từ từ và có khoa học!
+# auto_service

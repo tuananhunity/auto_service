@@ -17,16 +17,22 @@ from selenium.common.exceptions import (
     NoSuchElementException
 )
 from webdriver_manager.chrome import ChromeDriverManager
-import openai
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
+def load_comments(filepath="comments.txt"):
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            return [line.strip() for line in f if line.strip()]
+    except Exception as e:
+        print(f"Lỗi khi đọc file {filepath}: {e}")
+        return ["Bài viết rất hay, cảm ơn bạn đã chia sẻ!"]
 CONFIG = {
     'POST_URL': os.getenv('POST_URL'),
-    # Change 'Write a comment...' to your language in Facebook settings like 'Comment as Nguyen Duy' or 'Viết bình luận...'
-    'COMMENT_BOX_XPATH': "//div[contains(@aria-label, 'Write a comment') and @contenteditable='true']",
+    # Hỗ trợ cả tiếng Anh và tiếng Việt cho ô nhập chữ
+    'COMMENT_BOX_XPATH': "//div[(contains(@aria-label, 'Write a comment') or contains(@aria-label, 'Viết bình luận') or contains(@aria-label, 'Bình luận dưới tên') or contains(@aria-label, 'Bình luận công khai')) and @contenteditable='true']",
     'MAX_COMMENTS': 100,
     'MAX_ITERATIONS': 10000,
     'DELAYS': {
@@ -41,11 +47,7 @@ CONFIG = {
     'CHROME_PROFILE': 'Default'
 }
 
-OPENAI_CONFIG = {
-    'API_KEY': os.getenv('OPENAI_API_KEY'),
-    'MODEL': os.getenv('OPENAI_MODEL'),
-    'PROMPT': os.getenv('OPENAI_PROMPT') + 'Do not include emojis or any introductory phrases or additional text.'
-}
+COMMENTS_LIST = load_comments('comments.txt')
 
 def setup_logger():
     """
@@ -67,14 +69,28 @@ def setup_logger():
 logger = setup_logger()
 
 class FacebookAICommentBot:
-    def __init__(self, config=None):
+    def __init__(self, config=None, log_callback=None):
         """
         Initialize the Facebook comment bot with configuration.
         """
         self.config = {**CONFIG, **(config or {})}
         self.driver = None
+        self.log_callback = log_callback
 
-        openai.api_key = OPENAI_CONFIG['API_KEY']
+    def _log(self, msg, level='info'):
+        if level == 'info':
+            logger.info(msg)
+        elif level == 'error':
+            logger.error(msg)
+        elif level == 'warning':
+            logger.warning(msg)
+        elif level == 'critical':
+            logger.critical(msg)
+        else:
+            logger.debug(msg)
+        
+        if self.log_callback:
+            self.log_callback(msg)
 
     def setup_driver(self):
         """
@@ -88,7 +104,7 @@ class FacebookAICommentBot:
             chrome_options.add_experimental_option('useAutomationExtension', False)
 
             # Set Chrome binary location (adjust as needed)
-            chrome_options.binary_location = "C:/Program Files/Google/Chrome/Application/chrome.exe"
+            # chrome_options.binary_location = "C:/Program Files/Google/Chrome/Application/chrome.exe"
 
             # Create a custom user-data dir (so we don't need your real profile path)
             user_data_dir = os.path.join(os.getcwd(), "chrome_data")
@@ -97,9 +113,9 @@ class FacebookAICommentBot:
 
             service = Service(ChromeDriverManager().install())
             self.driver = webdriver.Chrome(service=service, options=chrome_options)
-            logger.info("Chrome driver set up successfully.")
+            self._log("Chrome driver set up successfully.")
         except Exception as e:
-            logger.error(f"Failed to setup Chrome Driver: {e}")
+            self._log(f"Failed to setup Chrome Driver: {e}", 'error')
             raise
 
     def random_pause(self, min_time=1, max_time=5):
@@ -222,108 +238,162 @@ class FacebookAICommentBot:
 
     def generate_comment(self) -> str:
         """
-        Use OpenAI API to generate a random, personalized comment.
+        Lấy một bình luận ngẫu nhiên từ danh sách (comments.txt) thay vì dùng AI.
         """
         try:
-            prompt = OPENAI_CONFIG['PROMPT']
-            response = openai.ChatCompletion.create(
-                model=OPENAI_CONFIG['MODEL'],
-                messages=[{"role": "user", "content": prompt}],
-            )
-            comment = response.choices[0].message['content'].strip()
-            logger.info(f"Generated comment: {comment}")
+            comment = random.choice(COMMENTS_LIST)
+            self._log(f"Selected comment: {comment}", 'debug')
             return comment
         except Exception as e:
-            logger.error(f"Failed to generate comment: {e}")
-            # Default fallback comment if OpenAI fails
-            return "Such a thoughtful post! Thanks for sharing! 😊"
-
-    def post_comment(self, comment: str, comment_count: int):
-        """
-        Locate the comment box, click it, and post a comment with "human-like" actions.
-        """
-        try:
-            comment_area = WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, self.config['COMMENT_BOX_XPATH']))
-            )
-
-            # Random scroll or random hover before posting the comment
-            if random.random() < 0.4:
-                self.random_scroll()
-            else:
-                self.random_hover_or_click()
-
-            # Human-like mouse movements before clicking
-            self.human_mouse_jiggle(comment_area, moves=3)
-
-            # Click inside the comment box
-            comment_area.click()
-            self.random_pause(0.5, 2.0)
-
-            # Human-like typing into the comment box
-            self.human_type(comment_area, comment)
-            self.random_pause(0.5, 2.0)
-
-            # Submit the comment (press Enter)
-            comment_area.send_keys(Keys.RETURN)
-            self.random_pause(0.5, 2.0)
-
-            logger.info(f"Comment {comment_count} posted: '{comment}'")
-        except TimeoutException:
-            logger.warning(f"Comment {comment_count} posting timeout - element not found")
-            raise
-        except NoSuchElementException:
-            logger.warning(f"Comment {comment_count} posting element not found")
-            raise
-        except Exception as e:
-            logger.error(f"Error during comment posting for comment count {comment_count}: {e}")
-            raise
+            self._log(f"Lỗi khi chọn bình luận: {e}", 'error')
+            return "Bài viết rất hay và ý nghĩa!"
 
     def run(self):
         """
-        Main method to execute the Facebook comment bot with human-like actions.
+        Main method to execute the Facebook group comment bot with human-like actions.
         """
         try:
             self.setup_driver()
-            self.driver.get(self.config['POST_URL'])
-            logger.info(f"Loaded Facebook post URL: {self.config['POST_URL']}")
+            url = self.config.get('POST_URL', '')
+            self._log(f"Đang tải trang: {url}")
+            self.driver.get(url)
+            
+            # Cho người dùng 10 giây ban đầu để xem hoặc đăng nhập nếu cần
+            self._log(f"Chờ 10 giây để tải trang / đăng nhập...")
+            time.sleep(10)
 
             comment_count = 0
+            max_comments = int(self.config.get('MAX_COMMENTS', 10))
+            delay_seconds = int(self.config.get('DELAY_SECONDS', 10))
 
             for i in range(self.config['MAX_ITERATIONS']):
-                # Stop if we've hit the maximum comment limit
-                if comment_count >= self.config['MAX_COMMENTS']:
-                    logger.info("Max comments reached.")
+                if comment_count >= max_comments:
+                    self._log("Đã đạt mốc giới hạn bình luận tối đa.")
                     break
 
-                self.random_pause(0.5, 2.0)
-
-                # Occasional "idle time" as if the user is reading or distracted
-                if random.random() < 0.2:
-                    idle_time = random.randint(5, 10)
-                    logger.debug(f"Idling for {idle_time} seconds.")
-                    time.sleep(idle_time)
-
-                # Generate comment using OpenAI
-                comment = self.generate_comment()
-
+                self._log("Đang quét các bài viết trên News Feed...")
                 try:
-                    self.post_comment(comment, comment_count + 1)
-                    comment_count += 1
+                    self.driver.execute_script("window.scrollBy(0, 300);")
+                    self.random_pause(1, 2)
+                    
+                    found_target = None
+                    target_article = None
+                    
+                    # Cách phân tích bài viết chính xác nhất là: Tìm từng khối bài viết (<div role='article'>)
+                    articles = self.driver.find_elements(By.XPATH, "//div[@role='article']")
+                    
+                    for article in articles:
+                        if article.get_attribute("data-bot-commented") == "true":
+                            continue
+                            
+                        # Đã tìm thấy một bài viết chưa bình luận
+                        if article.is_displayed():
+                            target_article = article
+                            
+                            # Cố tìm xem bài viết này CÓ SẴN ô nhập chữ không (Dạng mở rộng sẵn)
+                            try:
+                                xpath_box = "." + self.config['COMMENT_BOX_XPATH']
+                                boxes = article.find_elements(By.XPATH, xpath_box)
+                                for b in boxes:
+                                    if b.is_displayed():
+                                        found_target = b
+                                        break
+                            except:
+                                pass
+                                
+                            if found_target:
+                                break # Đã tìm thấy ô để gõ
+                                
+                            # Nếu KHÔNG CÓ SẴN ô chữ, đi tìm Nút/Icon Bình luận
+                            xpath_btns = ".//*[(@role='button' or @tabindex='0' or @role='link') and (contains(translate(@aria-label, 'BCMNL', 'bcmnl'), 'comment') or contains(translate(@aria-label, 'BCMNL', 'bcmnl'), 'bình luận') or contains(translate(., 'BCMNL', 'bcmnl'), 'comment') or contains(translate(., 'BCMNL', 'bcmnl'), 'bình luận'))]"
+                            btns = article.find_elements(By.XPATH, xpath_btns)
+                            
+                            valid_btn = None
+                            bad_words = ["nhãn dán", "gif", "avatar", "sticker", "file đính kèm", "attachment", "mới nhất", "bình luận trước"]
+                            for btn in btns:
+                                if btn.is_displayed():
+                                    try:
+                                        text = btn.text.lower()
+                                        aria = (btn.get_attribute("aria-label") or "").lower()
+                                        combined = text + " " + aria
+                                        if ("bình luận" in combined or "comment" in combined) and not any(bad in combined for bad in bad_words):
+                                            if len(text) < 50:
+                                                valid_btn = btn
+                                                break
+                                    except:
+                                        pass
+                                        
+                            if valid_btn:
+                                # Click vào nút đó để mở Popup hoặc xổ ô bình luận ra
+                                self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", valid_btn)
+                                self.random_pause(1, 2)
+                                try:
+                                    self.human_mouse_jiggle(valid_btn, moves=2)
+                                    valid_btn.click()
+                                except:
+                                    self.driver.execute_script("arguments[0].click();", valid_btn)
+                                    
+                                self.random_pause(1, 2)
+                                
+                                # Tìm lại ô nhập chữ sau khi nó xổ ra
+                                active_el = self.driver.switch_to.active_element
+                                if active_el and (active_el.get_attribute("contenteditable") == "true" or active_el.tag_name in ['input', 'textarea']):
+                                    found_target = active_el
+                                    break
+                                else:
+                                    # Tìm rộng trên trang (trường hợp nó bật bung popup che màn hình)
+                                    global_boxes = self.driver.find_elements(By.XPATH, self.config['COMMENT_BOX_XPATH'])
+                                    for gb in global_boxes:
+                                        if gb.is_displayed():
+                                            found_target = gb
+                                            break
+                                    if found_target:
+                                        break
+                                        
+                            # Dù bài viết này lỗi không tìm được nút hay ô, cũng đánh dấu bỏ qua để khỏi kẹt
+                            self.driver.execute_script("arguments[0].setAttribute('data-bot-commented', 'true');", target_article)
+                    
+                    if found_target and target_article:
+                        self.driver.execute_script("arguments[0].setAttribute('data-bot-commented', 'true');", target_article)
+                        self._log("Bắt đầu tự động nhập bình luận...")
+                        
+                        comment = self.generate_comment()
+                        self.human_type(found_target, comment)
+                        self.random_pause(0.5, 1.5)
+                        found_target.send_keys(Keys.RETURN)
+                        
+                        comment_count += 1
+                        self._log(f"✅ Đã bình luận thành công: '{comment}'")
+                        self._log(f"Nghỉ ngơi {delay_seconds} tiếp tục...")
+                        self.random_pause(delay_seconds, delay_seconds + 3)
+                        
+                        # Thoát Popup
+                        try:
+                            webdriver.ActionChains(self.driver).send_keys(Keys.ESCAPE).perform()
+                            time.sleep(0.5)
+                            webdriver.ActionChains(self.driver).send_keys(Keys.ESCAPE).perform()
+                            time.sleep(1)
+                        except:
+                            pass
+                            
+                        self.driver.execute_script("arguments[0].scrollIntoView({block: 'end'});", target_article)
+                        self.driver.execute_script("window.scrollBy(0, 500);")
+                        time.sleep(3)
+                    else:
+                        self._log("Chưa thấy bài viết hợp lệ, đang cuộn xuống...")
+                        self.driver.execute_script("window.scrollBy(0, 800);")
+                        time.sleep(5)
+                        
                 except Exception as e:
-                    logger.warning(f"Iteration {i+1} failed to post comment: {e}")
-
-                # Every 30 comments, refresh and take a longer pause
-                if comment_count % 30 == 0 and comment_count != 0:
-                    logger.info(f"Comment count: {comment_count}. Refreshing page.")
-                    self.driver.refresh()
-                    self.random_pause(self.config['DELAYS']['RELOAD_PAUSE'] - 10, self.config['DELAYS']['RELOAD_PAUSE'] + 10)  # Adding some randomness to the pause
+                    self._log(f"Lỗi vòng lặp quét bài: {e}", 'warning')
+                    self.driver.execute_script("window.scrollBy(0, 800);")
+                    time.sleep(3)
         except Exception as e:
-            logger.critical(f"Bot execution failed: {e}")
+            self._log(f"Bot execution bị lỗi: {e}", 'critical')
         finally:
             if self.driver:
                 self.driver.quit()
-                logger.info("Browser closed.")
+                self._log("Browser đã được đóng.")
 
 def main():
     """
