@@ -48,4 +48,45 @@ python3 gui.py
 
 ## ⚠️ Lưu ý an toàn
 Mặc dù công cụ được tối ưu chống Bot (Anti-detect), nhưng nếu bạn thiết lập bình luận **quá nhanh** (delay siêu ngắn) hay thiết lập **quá nhiều** (Max Post: 1000) trong thời gian ngắn, hệ thống AI đo lường tần suất của Facebook vẫn có thể tạm thời khóa mõm (Block Comment) của tài khoản bạn vài ngày do vi phạm Tiêu chuẩn Cộng đồng. Hãy thiết lập một cách từ từ và có khoa học!
+---
+
+## 📱 Điều khiển từ xa (Web & Mobile)
+
+Bản cập nhật mới hỗ trợ điều khiển Bot từ xa thông qua giao diện Web và ứng dụng điện thoại Android.
+
+### 1. Khởi chạy Backend (trên Máy tính)
+Để các giao diện từ xa hoạt động, bạn cần chạy Flask server trên máy tính (nơi đang chạy Bot):
+```bash
+python3 server.py
+```
+*Giao diện Web sẽ mặc định chạy tại: `http://localhost:5000`*
+
+### 2. Giao diện Web Dashboard
+Bạn có thể mở trình duyệt trên máy tính hoặc điện thoại (cùng mạng WiFi) để truy cập vào địa chỉ IP của máy tính:
+- Tại máy: `http://localhost:5000`
+- Thiết bị khác: `http://<IP-MÁY-TÍNH>:5000`
+
+### 3. Ứng dụng Android (Mobile App)
+Ứng dụng được xây dựng bằng Expo (React Native).
+
+**Chạy qua Expo Go (Để test nhanh):**
+1. Cài đặt ứng dụng **Expo Go** trên điện thoại từ Play Store.
+2. Tại máy tính, di chuyển vào thư mục mobile và chạy:
+   ```bash
+   cd mobile
+   npm install
+   npx expo start
+   ```
+3. Quét mã QR hiện lên bằng ứng dụng Expo Go.
+4. Vào tab **Settings** trong app và nhập IP máy tính (ví dụ: `http://192.168.1.100:5000`).
+
+**Build file APK (Để cài đặt lâu dài):**
+Bạn có thể sử dụng dịch vụ Cloud của Expo để build file cài đặt:
+```bash
+cd mobile
+npx eas build --platform android --profile preview
+```
+*Sau khi chạy, Expo sẽ cung cấp link tải file `.apk` để bạn cài trực tiếp vào điện thoại.*
+
+---
 # auto_service
