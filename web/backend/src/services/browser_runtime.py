@@ -11,7 +11,7 @@ from pathlib import Path
 from flask import current_app
 
 from ..models import BrowserSession
-from ..utils.paths import browser_profile_path, windows_browser_profile_path
+from ..utils.paths import browser_profile_path, windows_browser_profile_path_for_session
 
 
 class BaseBrowserRuntime:
@@ -43,6 +43,15 @@ class BaseBrowserRuntime:
     def _pid_alive(self, pid: int | None) -> bool:
         if not pid:
             return False
+        if platform.system().lower() == "windows":
+            result = subprocess.run(
+                ["tasklist", "/FI", f"PID eq {pid}"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+                text=True,
+                check=False,
+            )
+            return str(pid) in result.stdout
         try:
             os.kill(pid, 0)
         except OSError:
@@ -167,7 +176,9 @@ class WindowsLocalChromeRuntime(BaseBrowserRuntime):
         session.novnc_token = None
         session.xvfb_pid = None
         session.x11vnc_pid = None
-        session.profile_path = str(windows_browser_profile_path(session.user_id))
+        session.profile_path = str(
+            windows_browser_profile_path_for_session(session.user_id, str(session.debug_port))
+        )
         session.viewer_url = None
 
     def launch(self, session: BrowserSession) -> None:

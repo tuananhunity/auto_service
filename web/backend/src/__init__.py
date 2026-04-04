@@ -1,4 +1,5 @@
-from flask import Flask
+from flask import Flask, jsonify, request
+from werkzeug.exceptions import HTTPException
 
 from .config import Config
 from .extensions import db, socketio
@@ -6,6 +7,7 @@ from .routes.api import api_bp
 from .routes.auth import auth_bp
 from .routes.dashboard import dashboard_bp
 from .routes.socket_events import register_socket_handlers
+from .services.startup_recovery import reconcile_runtime_state
 
 
 def create_app(config_object: type[Config] = Config) -> Flask:
@@ -28,5 +30,19 @@ def create_app(config_object: type[Config] = Config) -> Flask:
         from . import models  # noqa: F401
 
         db.create_all()
+        reconcile_runtime_state()
+
+    @app.errorhandler(HTTPException)
+    def handle_http_exception(error: HTTPException):
+        if request.path.startswith("/api/"):
+            return jsonify({"error": error.description or error.name}), error.code
+        return error
+
+    @app.errorhandler(Exception)
+    def handle_unexpected_exception(error: Exception):
+        if request.path.startswith("/api/"):
+            app.logger.exception("Unhandled API exception")
+            return jsonify({"error": str(error) or "Internal server error"}), 500
+        raise error
 
     return app

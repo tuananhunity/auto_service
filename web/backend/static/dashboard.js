@@ -105,9 +105,25 @@
             credentials: "same-origin",
             ...options,
         });
-        const payload = await response.json();
+        const contentType = response.headers.get("content-type") || "";
+        const rawBody = await response.text();
+        let payload = null;
+
+        if (contentType.includes("application/json")) {
+            try {
+                payload = rawBody ? JSON.parse(rawBody) : {};
+            } catch (error) {
+                payload = { error: "Server returned invalid JSON." };
+            }
+        } else {
+            payload = { error: rawBody.slice(0, 200) || "Request failed" };
+        }
+
         if (!response.ok) {
             throw new Error(payload.error || "Request failed");
+        }
+        if (!contentType.includes("application/json")) {
+            throw new Error("Server returned non-JSON response. The request may have been redirected or crashed.");
         }
         return payload;
     }

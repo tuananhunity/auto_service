@@ -27,3 +27,9 @@ def windows_browser_profile_path(user_id: int) -> Path:
     path = Path(current_app.config["WINDOWS_USER_DATA_ROOT"]) / str(user_id) / "default"
     path.mkdir(parents=True, exist_ok=True)
     return path
+
+
+def windows_browser_profile_path_for_session(user_id: int, session_key: str) -> Path:
+    path = Path(current_app.config["WINDOWS_USER_DATA_ROOT"]) / str(user_id) / f"session_{session_key}"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
