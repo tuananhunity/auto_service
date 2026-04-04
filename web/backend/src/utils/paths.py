@@ -10,6 +10,7 @@ def ensure_storage_tree() -> None:
     for path in [
         base_dir,
         base_dir / "browser_profiles",
+        base_dir / "windows_profiles",
         base_dir / "novnc",
         base_dir / "runtime",
     ]:
@@ -18,5 +19,11 @@ def ensure_storage_tree() -> None:
 
 def browser_profile_path(user_id: int) -> Path:
     path = Path(current_app.config["BASE_STORAGE_DIR"]) / "browser_profiles" / str(user_id) / "default"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def windows_browser_profile_path(user_id: int) -> Path:
+    path = Path(current_app.config["WINDOWS_USER_DATA_ROOT"]) / str(user_id) / "default"
     path.mkdir(parents=True, exist_ok=True)
     return path

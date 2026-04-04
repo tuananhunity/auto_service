@@ -23,7 +23,7 @@ def index():
         "dashboard/index.html",
         current_user=user,
         browser_session=browser_session,
-        novnc_url=browser_session_manager.novnc_url(browser_session) if browser_session else None,
+        viewer_url=browser_session.viewer_url if browser_session else None,
     )
 
 
@@ -31,10 +31,10 @@ def index():
 @login_required
 def remote_browser(session_id: int):
     user = get_current_user()
-    session = browser_session_manager.get_for_user(user, session_id)
+    browser_session = browser_session_manager.get_for_user(user, session_id)
     return render_template(
         "dashboard/remote_browser.html",
         current_user=user,
-        browser_session=session,
-        novnc_url=browser_session_manager.novnc_url(session),
+        browser_session=browser_session,
+        viewer_url=browser_session.viewer_url,
     )

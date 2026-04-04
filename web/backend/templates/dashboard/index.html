@@ -27,9 +27,9 @@
             <strong id="activeJobStatus">idle</strong>
         </article>
         <article class="stat-card">
-            <span class="label">Display / VNC</span>
+            <span class="label">Runtime / Viewer</span>
             <strong id="displayInfo">
-                {% if browser_session %}:{{ browser_session.display_number }} / {{ browser_session.vnc_port }}{% else %}-{% endif %}
+                {% if browser_session %}{{ browser_session.runtime_mode }} / {{ browser_session.viewer_type }}{% else %}-{% endif %}
             </strong>
         </article>
     </section>
@@ -82,10 +82,19 @@
                 <a id="remoteBrowserLink" class="link-button {% if not browser_session %}is-disabled{% endif %}" href="{{ url_for('dashboard.remote_browser', session_id=browser_session.id) if browser_session else '#' }}" target="_blank">Open standalone</a>
             </div>
             <div class="browser-frame-wrap">
-                {% if browser_session and novnc_url %}
-                    <iframe id="remoteBrowserFrame" src="{{ novnc_url }}" title="Remote Browser"></iframe>
+                {% if browser_session and browser_session.viewer_type == 'novnc' and viewer_url %}
+                    <iframe id="remoteBrowserFrame" src="{{ viewer_url }}" title="Remote Browser"></iframe>
+                {% elif browser_session and browser_session.viewer_type == 'external' %}
+                    <div class="empty-browser local-browser-card">
+                        <div>
+                            <strong>Local Chrome dev session is running.</strong>
+                            <p>Chrome was opened directly on this Windows machine. Use the local Chrome window, and keep this dashboard open for status, logs, and control.</p>
+                            <p>Debug port: <code>{{ browser_session.debug_port }}</code></p>
+                            <p>Profile path: <code>{{ browser_session.profile_path }}</code></p>
+                        </div>
+                    </div>
                 {% else %}
-                    <div class="empty-browser">Open a browser session to embed the live noVNC view here.</div>
+                    <div class="empty-browser">Open a browser session to access the current runtime viewer.</div>
                 {% endif %}
             </div>
         </article>
@@ -122,7 +131,7 @@
 <script>
     window.__INITIAL_STATE__ = {
         browserSession: {{ browser_session.to_dict()|tojson if browser_session else 'null' }},
-        novncUrl: {{ novnc_url|tojson if novnc_url else 'null' }},
+        viewerUrl: {{ viewer_url|tojson if viewer_url else 'null' }},
         user: {{ current_user.to_dict()|tojson }}
     };
 </script>

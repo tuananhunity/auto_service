@@ -100,6 +100,21 @@ input, textarea, select {
     background: #020617;
     border: 1px dashed #334155;
 }
+.local-browser-card {
+    place-items: start;
+    padding: 24px;
+}
+.local-browser-card p {
+    margin: 12px 0 0;
+    color: #94a3b8;
+}
+.local-browser-card code,
+.remote-browser-page code {
+    background: #111827;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 2px 6px;
+}
 .saved-lists {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));

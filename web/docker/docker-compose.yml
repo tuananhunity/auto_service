@@ -15,6 +15,7 @@ services:
       context: ../..
       dockerfile: web/docker/backend.Dockerfile
     environment:
+      BROWSER_RUNTIME_MODE: linux_remote
       DATABASE_URL: postgresql+psycopg://remote_browser:remote_browser@postgres:5432/remote_browser
       SECRET_KEY: change-me
       BASE_STORAGE_DIR: /app/storage

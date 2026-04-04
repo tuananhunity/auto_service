@@ -8,6 +8,20 @@
         <h1>Browser Session #{{ browser_session.id }}</h1>
         <a class="btn btn-secondary" href="{{ url_for('dashboard.index') }}">Back to dashboard</a>
     </header>
-    <iframe class="standalone-browser-frame" src="{{ novnc_url }}" title="Standalone Remote Browser"></iframe>
+    {% if browser_session.viewer_type == "novnc" and viewer_url %}
+        <iframe class="standalone-browser-frame" src="{{ viewer_url }}" title="Standalone Remote Browser"></iframe>
+    {% elif browser_session.viewer_type == "external" %}
+        <section class="panel">
+            <h2>Windows Local Dev Session</h2>
+            <p class="muted">This runtime opens Chrome directly on the local Windows machine, so there is no embedded browser frame on this page.</p>
+            <p>Debug port: <code>{{ browser_session.debug_port }}</code></p>
+            <p>Profile path: <code>{{ browser_session.profile_path }}</code></p>
+            <p>Status: <code>{{ browser_session.status }}</code></p>
+        </section>
+    {% else %}
+        <section class="panel">
+            <p class="muted">No viewer is available for this browser session.</p>
+        </section>
+    {% endif %}
 </main>
 {% endblock %}

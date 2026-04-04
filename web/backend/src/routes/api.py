@@ -71,7 +71,7 @@ def api_get_browser_session(session_id: int):
     return jsonify(
         {
             "browser_session": session.to_dict(),
-            "novnc_url": browser_session_manager.novnc_url(session),
+            "viewer_url": session.viewer_url,
         }
     )
 

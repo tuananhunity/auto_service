@@ -43,9 +43,14 @@ class RemoteBrowserAutomationRunner:
             raise InterruptedError("Job stopped by user")
 
     def run(self) -> None:
+        chrome_binary = (
+            current_app.config["WINDOWS_CHROME_BINARY_PATH"]
+            if self.browser_session.runtime_mode == "windows_local"
+            else current_app.config["CHROME_BINARY_PATH"]
+        )
         self.driver = attach_to_debug_port(
             debug_port=self.browser_session.debug_port,
-            chrome_binary_path=current_app.config["CHROME_BINARY_PATH"],
+            chrome_binary_path=chrome_binary,
             driver_binary_path=current_app.config["CHROMEDRIVER_BINARY_PATH"] or None,
         )
         self._log("Attached Selenium to the live browser session.")

@@ -22,10 +22,10 @@
         logStream.prepend(entry);
     }
 
-    function renderSession(session, novncUrl) {
+    function renderSession(session, viewerUrl) {
         state.browserSession = session;
         setText("browserSessionStatus", session ? session.status : "offline");
-        setText("displayInfo", session ? `:${session.display_number} / ${session.vnc_port}` : "-");
+        setText("displayInfo", session ? `${session.runtime_mode} / ${session.viewer_type}` : "-");
 
         const closeBtn = document.getElementById("closeBrowserBtn");
         const startBtn = document.getElementById("startJobBtn");
@@ -33,10 +33,10 @@
         const wrap = document.querySelector(".browser-frame-wrap");
 
         closeBtn.disabled = !session;
-        startBtn.disabled = !session;
+        startBtn.disabled = !session || session.status !== "ready";
 
         if (!session) {
-            wrap.innerHTML = '<div class="empty-browser">Open a browser session to embed the live noVNC view here.</div>';
+            wrap.innerHTML = '<div class="empty-browser">Open a browser session to access the current runtime viewer.</div>';
             link.href = "#";
             link.classList.add("is-disabled");
             return;
@@ -44,9 +44,24 @@
 
         link.href = `/remote-browser/${session.id}`;
         link.classList.remove("is-disabled");
-        if (novncUrl) {
-            wrap.innerHTML = `<iframe id="remoteBrowserFrame" src="${novncUrl}" title="Remote Browser"></iframe>`;
+        if (session.viewer_type === "novnc" && viewerUrl) {
+            wrap.innerHTML = `<iframe id="remoteBrowserFrame" src="${viewerUrl}" title="Remote Browser"></iframe>`;
+            return;
         }
+        if (session.viewer_type === "external") {
+            wrap.innerHTML = `
+                <div class="empty-browser local-browser-card">
+                    <div>
+                        <strong>Local Chrome dev session is running.</strong>
+                        <p>Chrome was opened directly on this Windows machine. Use the local Chrome window while this dashboard handles status and jobs.</p>
+                        <p>Debug port: <code>${session.debug_port}</code></p>
+                        <p>Profile path: <code>${session.profile_path}</code></p>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+        wrap.innerHTML = '<div class="empty-browser">No embeddable viewer is available for this session.</div>';
     }
 
     function renderJob(job) {
@@ -137,7 +152,7 @@
         const payload = await fetchJson("/api/browser-sessions/open", { method: "POST", body: "{}" });
         const session = payload.browser_session;
         const details = await fetchJson(`/api/browser-sessions/${session.id}`);
-        renderSession(details.browser_session, details.novnc_url);
+        renderSession(details.browser_session, details.viewer_url);
         appendLog(`Opened browser session #${session.id}.`, "success");
     }
 
@@ -147,7 +162,7 @@
             method: "POST",
             body: "{}",
         });
-        renderSession(payload.browser_session.status === "stopped" ? null : payload.browser_session, null);
+        renderSession(payload.browser_session.status === "stopped" ? null : payload.browser_session, payload.browser_session?.viewer_url || null);
         appendLog(`Closed browser session #${payload.browser_session.id}.`, "warning");
     }
 
@@ -194,7 +209,7 @@
         if (payload.browser_session !== undefined) {
             if (payload.browser_session) {
                 fetchJson(`/api/browser-sessions/${payload.browser_session.id}`)
-                    .then((details) => renderSession(details.browser_session, details.novnc_url))
+                    .then((details) => renderSession(details.browser_session, details.viewer_url))
                     .catch(() => renderSession(payload.browser_session, null));
             } else {
                 renderSession(null, null);
@@ -211,12 +226,13 @@
             return;
         }
         fetchJson(`/api/browser-sessions/${payload.id}`)
-            .then((details) => renderSession(details.browser_session, details.novnc_url))
+            .then((details) => renderSession(details.browser_session, details.viewer_url))
             .catch(() => renderSession(payload, null));
     });
 
     socket.on("job_update", (payload) => renderJob(payload));
     socket.on("job_log", (payload) => appendLog(payload.message, payload.level));
 
+    renderSession(window.__INITIAL_STATE__.browserSession, window.__INITIAL_STATE__.viewerUrl);
     refreshSets().catch((error) => appendLog(error.message, "error"));
 })();

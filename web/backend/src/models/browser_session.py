@@ -10,10 +10,13 @@ class BrowserSession(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
     status = db.Column(db.String(20), nullable=False, default="idle")
-    display_number = db.Column(db.Integer, nullable=False)
-    vnc_port = db.Column(db.Integer, nullable=False)
+    runtime_mode = db.Column(db.String(30), nullable=False, default="windows_local")
+    viewer_type = db.Column(db.String(20), nullable=False, default="none")
+    viewer_url = db.Column(db.String(500))
+    display_number = db.Column(db.Integer)
+    vnc_port = db.Column(db.Integer)
     debug_port = db.Column(db.Integer, nullable=False)
-    novnc_token = db.Column(db.String(120), nullable=False, unique=True)
+    novnc_token = db.Column(db.String(120), unique=True)
     profile_path = db.Column(db.String(500), nullable=False)
     chrome_pid = db.Column(db.Integer)
     xvfb_pid = db.Column(db.Integer)
@@ -36,6 +39,9 @@ class BrowserSession(db.Model):
             "id": self.id,
             "user_id": self.user_id,
             "status": self.status,
+            "runtime_mode": self.runtime_mode,
+            "viewer_type": self.viewer_type,
+            "viewer_url": self.viewer_url,
             "display_number": self.display_number,
             "vnc_port": self.vnc_port,
             "debug_port": self.debug_port,
