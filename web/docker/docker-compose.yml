@@ -11,9 +11,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   backend:
-    build:
-      context: ../..
-      dockerfile: web/docker/backend.Dockerfile
+    image: ghcr.io/anhtuan/auto_service/auto-service-backend:latest
     environment:
       BROWSER_RUNTIME_MODE: linux_remote
       DATABASE_URL: postgresql+psycopg://remote_browser:remote_browser@postgres:5432/remote_browser
@@ -28,9 +26,7 @@ services:
       - browser_storage:/app/storage
 
   novnc:
-    build:
-      context: ../..
-      dockerfile: web/docker/backend.Dockerfile
+    image: ghcr.io/anhtuan/auto_service/auto-service-novnc:latest
     command: ["/usr/local/bin/run_websockify.sh"]
     environment:
       NOVNC_TOKEN_FILE: /app/storage/novnc/tokens
