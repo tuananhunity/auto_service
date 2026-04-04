@@ -11,9 +11,11 @@ Trong GitHub repo, đi đến Settings > Secrets and variables > Actions, thêm 
 
 - `SERVER_HOST`: IP hoặc domain của server
 - `SERVER_USER`: Username SSH (ví dụ: root hoặc ubuntu)
-- `SERVER_SSH_KEY`: Private SSH key để connect (tạo bằng `ssh-keygen`, paste private key vào đây)
+- `SERVER_SSH_KEY`: Private SSH key thô nhiều dòng để connect (tạo bằng `ssh-keygen`, paste trực tiếp toàn bộ nội dung key vào đây, bắt đầu bằng `-----BEGIN ... PRIVATE KEY-----`)
 
 > **Lưu ý:** Workflow sử dụng GitHub Container Registry (ghcr.io), không cần tài khoản Docker Hub riêng. Images sẽ được push lên `ghcr.io/anhtuan/auto_service/`.
+>
+> Không base64 encode `SERVER_SSH_KEY` trước khi lưu vào GitHub Secrets. Workflow truyền raw private key trực tiếp vào SSH action.
 
 ## Bước 3: Cập nhật Workflow
 - Trong `.github/workflows/deploy.yml`, thay đổi branch trigger nếu cần.
@@ -38,4 +40,5 @@ Trong GitHub repo, đi đến Settings > Secrets and variables > Actions, thêm 
 ## Lưu ý
 - Thay đổi `SECRET_KEY` trong docker-compose.yml thành key bảo mật.
 - Đảm bảo firewall mở ports cần thiết.
+- Nếu `docker pull` trên server báo `unauthorized`, hãy chạy `docker login ghcr.io` trên server bằng tài khoản/PAT có quyền pull image private.
 - Monitor logs với `docker-compose logs`.
