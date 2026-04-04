@@ -20,6 +20,10 @@ def _json_error(message: str, status: int = 400):
 def _upsert_data_set(model, user_id: int, name: str, items: list[str]):
     record_id = request.json.get("id")
     if record_id:
+        try:
+            record_id = int(record_id)
+        except (TypeError, ValueError):
+            raise ValueError("Invalid dataset id.")
         record = model.query.filter_by(id=record_id, user_id=user_id).first_or_404()
         record.name = name
         record.items = items
