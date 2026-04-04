@@ -1,0 +1,45 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: remote_browser
+      POSTGRES_USER: remote_browser
+      POSTGRES_PASSWORD: remote_browser
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ../..
+      dockerfile: web/docker/backend.Dockerfile
+    environment:
+      DATABASE_URL: postgresql+psycopg://remote_browser:remote_browser@postgres:5432/remote_browser
+      SECRET_KEY: change-me
+      BASE_STORAGE_DIR: /app/storage
+      NOVNC_BASE_URL: http://localhost:6080
+    ports:
+      - "5500:5500"
+    depends_on:
+      - postgres
+    volumes:
+      - browser_storage:/app/storage
+
+  novnc:
+    build:
+      context: ../..
+      dockerfile: web/docker/backend.Dockerfile
+    command: ["/usr/local/bin/run_websockify.sh"]
+    environment:
+      NOVNC_TOKEN_FILE: /app/storage/novnc/tokens
+    ports:
+      - "6080:6080"
+    depends_on:
+      - backend
+    volumes:
+      - browser_storage:/app/storage
+
+volumes:
+  postgres_data:
+  browser_storage:

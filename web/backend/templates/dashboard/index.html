@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block body %}
+<main class="dashboard-shell">
+    <header class="topbar">
+        <div>
+            <p class="eyebrow">Remote Browser</p>
+            <h1>Dashboard</h1>
+        </div>
+        <div class="topbar-actions">
+            <span class="user-pill">{{ current_user.username }} · {{ current_user.role }}</span>
+            <form method="post" action="{{ url_for('auth.logout') }}">
+                <button class="btn btn-secondary" type="submit">Logout</button>
+            </form>
+        </div>
+    </header>
+
+    <section class="status-grid">
+        <article class="stat-card">
+            <span class="label">Browser session</span>
+            <strong id="browserSessionStatus">{{ browser_session.status if browser_session else 'offline' }}</strong>
+        </article>
+        <article class="stat-card">
+            <span class="label">Active job</span>
+            <strong id="activeJobStatus">idle</strong>
+        </article>
+        <article class="stat-card">
+            <span class="label">Display / VNC</span>
+            <strong id="displayInfo">
+                {% if browser_session %}:{{ browser_session.display_number }} / {{ browser_session.vnc_port }}{% else %}-{% endif %}
+            </strong>
+        </article>
+    </section>
+
+    <section class="dashboard-grid">
+        <article class="panel">
+            <div class="panel-header">
+                <h2>Control</h2>
+                <div class="inline-actions">
+                    <button id="openBrowserBtn" class="btn btn-primary">Open Browser Session</button>
+                    <button id="closeBrowserBtn" class="btn btn-danger" {% if not browser_session %}disabled{% endif %}>Close Session</button>
+                </div>
+            </div>
+            <div class="form-grid">
+                <label>
+                    <span>Group set name</span>
+                    <input type="text" id="groupSetName" placeholder="Default Target Set">
+                </label>
+                <label>
+                    <span>Comment set name</span>
+                    <input type="text" id="commentSetName" placeholder="Default Comment Set">
+                </label>
+                <label class="full">
+                    <span>Target URLs</span>
+                    <textarea id="groupItems" rows="6" placeholder="One URL per line"></textarea>
+                </label>
+                <label class="full">
+                    <span>Comment candidates</span>
+                    <textarea id="commentItems" rows="6" placeholder="One line per comment"></textarea>
+                </label>
+                <label>
+                    <span>Delay</span>
+                    <input type="number" id="delayInput" value="5" min="1">
+                </label>
+                <label>
+                    <span>Max posts</span>
+                    <input type="number" id="maxPostsInput" value="5" min="1">
+                </label>
+            </div>
+            <div class="inline-actions">
+                <button id="saveSetsBtn" class="btn btn-secondary">Save Sets</button>
+                <button id="startJobBtn" class="btn btn-primary" {% if not browser_session %}disabled{% endif %}>Start Job</button>
+                <button id="stopJobBtn" class="btn btn-danger" disabled>Stop Job</button>
+            </div>
+        </article>
+
+        <article class="panel browser-panel">
+            <div class="panel-header">
+                <h2>Remote Browser</h2>
+                <a id="remoteBrowserLink" class="link-button {% if not browser_session %}is-disabled{% endif %}" href="{{ url_for('dashboard.remote_browser', session_id=browser_session.id) if browser_session else '#' }}" target="_blank">Open standalone</a>
+            </div>
+            <div class="browser-frame-wrap">
+                {% if browser_session and novnc_url %}
+                    <iframe id="remoteBrowserFrame" src="{{ novnc_url }}" title="Remote Browser"></iframe>
+                {% else %}
+                    <div class="empty-browser">Open a browser session to embed the live noVNC view here.</div>
+                {% endif %}
+            </div>
+        </article>
+    </section>
+
+    <section class="dashboard-grid">
+        <article class="panel">
+            <div class="panel-header">
+                <h2>Saved Sets</h2>
+                <button id="refreshDataBtn" class="btn btn-secondary">Refresh</button>
+            </div>
+            <div class="saved-lists">
+                <div>
+                    <h3>Group sets</h3>
+                    <ul id="groupSetList" class="saved-list"></ul>
+                </div>
+                <div>
+                    <h3>Comment sets</h3>
+                    <ul id="commentSetList" class="saved-list"></ul>
+                </div>
+            </div>
+        </article>
+
+        <article class="panel">
+            <div class="panel-header">
+                <h2>Realtime Logs</h2>
+                <button id="clearLogsBtn" class="btn btn-secondary">Clear</button>
+            </div>
+            <div id="logStream" class="log-stream"></div>
+        </article>
+    </section>
+</main>
+
+<script>
+    window.__INITIAL_STATE__ = {
+        browserSession: {{ browser_session.to_dict()|tojson if browser_session else 'null' }},
+        novncUrl: {{ novnc_url|tojson if novnc_url else 'null' }},
+        user: {{ current_user.to_dict()|tojson }}
+    };
+</script>
+<script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+{% endblock %}

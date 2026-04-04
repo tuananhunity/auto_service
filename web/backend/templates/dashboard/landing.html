@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Remote Browser Platform{% endblock %}
+
+{% block body %}
+<main class="landing">
+    <section class="hero-card">
+        <p class="eyebrow">Independent Web Stack</p>
+        <h1>Remote Browser Dashboard</h1>
+        <p class="muted">A dedicated Flask app for user auth, server-side browser sessions, job orchestration, and live monitoring.</p>
+        <a class="btn btn-primary" href="{{ url_for('auth.login') }}">Open Login</a>
+    </section>
+</main>
+{% endblock %}
