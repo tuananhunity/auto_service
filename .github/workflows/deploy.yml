@@ -20,21 +20,15 @@ jobs:
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GH_PAT }}
 
-    - name: Build and push backend image
+    - name: Build and push backend + novnc images
       uses: docker/build-push-action@v5
       with:
         context: .
         file: ./web/docker/backend.Dockerfile
         push: true
-        tags: ghcr.io/${{ github.repository }}/auto-service-backend:latest
-
-    - name: Build and push novnc image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: ./web/docker/backend.Dockerfile  # Giả sử cùng Dockerfile, có thể cần tách nếu khác
-        push: true
-        tags: ghcr.io/${{ github.repository }}/auto-service-novnc:latest
+        tags: |
+          ghcr.io/${{ github.repository }}/auto-service-backend:latest
+          ghcr.io/${{ github.repository }}/auto-service-novnc:latest
 
     - name: Deploy to server
       uses: appleboy/ssh-action@v1.0.3
@@ -47,7 +41,7 @@ jobs:
           echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
           if command -v docker-compose >/dev/null 2>&1; then
             DC=docker-compose
-          elif docker compose version >/dev/null 2>&1; then
+          elif command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
             DC="docker compose"
           else
             echo "No docker-compose or docker compose available on server" >&2
