@@ -36,7 +36,12 @@ jobs:
         username: ${{ secrets.SERVER_USER }}
         key: ${{ secrets.SERVER_SSH_KEY }}
         script: |
+          DEPLOY_BRANCH=${{ github.ref_name }}
           AUTO_SERVICE_IMAGE=ghcr.io/${{ github.repository }}/auto-service:latest
+          cd /home/auto_service
+          git fetch --depth=1 origin $DEPLOY_BRANCH
+          git checkout $DEPLOY_BRANCH
+          git pull --ff-only origin $DEPLOY_BRANCH
           cd /home/auto_service/web/docker
           echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
           if docker compose version >/dev/null 2>&1; then
@@ -47,6 +52,7 @@ jobs:
             echo "No docker compose available on server" >&2
             exit 1
           fi
+          echo "Using branch: $DEPLOY_BRANCH"
           echo "Using compose command: $DC"
           echo "Using image: $AUTO_SERVICE_IMAGE"
           pwd

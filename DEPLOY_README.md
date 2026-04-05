@@ -20,6 +20,7 @@ Trong GitHub repo, đi đến Settings > Secrets and variables > Actions, thêm 
 ## Bước 3: Cập nhật Workflow
 - Trong `.github/workflows/deploy.yml`, thay đổi branch trigger nếu cần.
 - Thay đổi đường dẫn trong script SSH: `cd /path/to/your/project` thành đường dẫn thực trên server.
+- Server cần có sẵn repo git tại đường dẫn deploy và có quyền `git fetch/pull` từ remote `origin`.
 
 ## Bước 4: Cập nhật Docker Compose
 - File `web/docker/docker-compose.yml` dùng chung một image cho cả `backend` và `novnc` thông qua biến `AUTO_SERVICE_IMAGE`.
@@ -28,6 +29,7 @@ Trong GitHub repo, đi đến Settings > Secrets and variables > Actions, thêm 
 
 ## Bước 5: Chạy lần đầu
 - Push code lên main branch để trigger deploy.
+- Workflow sẽ tự `git fetch`, `git checkout`, và `git pull --ff-only` đúng branch đang deploy trước khi chạy Docker Compose.
 - Sau deploy, SSH vào server và chạy seed admin:
   ```
   docker-compose exec backend python scripts/seed_admin.py
