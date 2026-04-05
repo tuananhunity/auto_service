@@ -13,7 +13,7 @@ Trong GitHub repo, đi đến Settings > Secrets and variables > Actions, thêm 
 - `SERVER_USER`: Username SSH (ví dụ: root hoặc ubuntu)
 - `SERVER_SSH_KEY`: Private SSH key thô nhiều dòng để connect (tạo bằng `ssh-keygen`, paste trực tiếp toàn bộ nội dung key vào đây, bắt đầu bằng `-----BEGIN ... PRIVATE KEY-----`)
 
-> **Lưu ý:** Workflow sử dụng GitHub Container Registry (ghcr.io), không cần tài khoản Docker Hub riêng. Images sẽ được push lên `ghcr.io/anhtuan/auto_service/`.
+> **Lưu ý:** Workflow sử dụng GitHub Container Registry (ghcr.io), không cần tài khoản Docker Hub riêng. Image sẽ được push theo đúng repo hiện tại dưới dạng `ghcr.io/<owner>/<repo>/auto-service:latest`.
 >
 > Không base64 encode `SERVER_SSH_KEY` trước khi lưu vào GitHub Secrets. Workflow truyền raw private key trực tiếp vào SSH action.
 
@@ -22,8 +22,9 @@ Trong GitHub repo, đi đến Settings > Secrets and variables > Actions, thêm 
 - Thay đổi đường dẫn trong script SSH: `cd /path/to/your/project` thành đường dẫn thực trên server.
 
 ## Bước 4: Cập nhật Docker Compose
-- File `web/docker/docker-compose.yml` đã được cấu hình để pull images từ GitHub Container Registry.
-- Không cần tạo file `.env` hoặc set biến môi trường.
+- File `web/docker/docker-compose.yml` dùng chung một image cho cả `backend` và `novnc` thông qua biến `AUTO_SERVICE_IMAGE`.
+- Trong GitHub Actions deploy, biến này được set tự động thành `ghcr.io/<owner>/<repo>/auto-service:latest`, nên không cần hardcode namespace registry trong compose file.
+- Nếu chạy `docker compose` thủ công ngoài workflow, cần export `AUTO_SERVICE_IMAGE` trước khi start.
 
 ## Bước 5: Chạy lần đầu
 - Push code lên main branch để trigger deploy.

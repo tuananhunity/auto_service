@@ -20,15 +20,14 @@ jobs:
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GH_PAT }}
 
-    - name: Build and push backend + novnc images
+    - name: Build and push shared app image
       uses: docker/build-push-action@v5
       with:
         context: .
         file: ./web/docker/backend.Dockerfile
         push: true
         tags: |
-          ghcr.io/${{ github.repository }}/auto-service-backend:latest
-          ghcr.io/${{ github.repository }}/auto-service-novnc:latest
+          ghcr.io/${{ github.repository }}/auto-service:latest
 
     - name: Deploy to server
       uses: appleboy/ssh-action@v1.0.3
@@ -37,6 +36,7 @@ jobs:
         username: ${{ secrets.SERVER_USER }}
         key: ${{ secrets.SERVER_SSH_KEY }}
         script: |
+          AUTO_SERVICE_IMAGE=ghcr.io/${{ github.repository }}/auto-service:latest
           cd /home/auto_service/web/docker
           echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
           if docker compose version >/dev/null 2>&1; then
@@ -48,10 +48,10 @@ jobs:
             exit 1
           fi
           echo "Using compose command: $DC"
+          echo "Using image: $AUTO_SERVICE_IMAGE"
           pwd
           ls -la
-          $DC -f docker-compose.yml config
-          $DC -f docker-compose.yml down || true
-          docker pull ghcr.io/${{ github.repository }}/auto-service-backend:latest
-          docker pull ghcr.io/${{ github.repository }}/auto-service-novnc:latest
-          $DC -f docker-compose.yml up -d
+          AUTO_SERVICE_IMAGE=$AUTO_SERVICE_IMAGE $DC -f docker-compose.yml config
+          AUTO_SERVICE_IMAGE=$AUTO_SERVICE_IMAGE $DC -f docker-compose.yml down || true
+          docker pull $AUTO_SERVICE_IMAGE
+          AUTO_SERVICE_IMAGE=$AUTO_SERVICE_IMAGE $DC -f docker-compose.yml up -d
