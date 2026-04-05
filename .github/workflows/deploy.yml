@@ -43,8 +43,17 @@ jobs:
         username: ${{ secrets.SERVER_USER }}
         key: ${{ secrets.SERVER_SSH_KEY }}
         script: |
-          cd /home/auto_service
-          docker-compose down
+          cd /home/auto_service/web/docker
+          echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+          if command -v docker-compose >/dev/null 2>&1; then
+            DC=docker-compose
+          elif docker compose version >/dev/null 2>&1; then
+            DC="docker compose"
+          else
+            echo "No docker-compose or docker compose available on server" >&2
+            exit 1
+          fi
+          $DC down || true
           docker pull ghcr.io/${{ github.repository }}/auto-service-backend:latest
           docker pull ghcr.io/${{ github.repository }}/auto-service-novnc:latest
-          docker-compose up -d
+          $DC up -d
