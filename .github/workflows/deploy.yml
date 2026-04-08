@@ -61,9 +61,15 @@ jobs:
           echo "Using branch: $DEPLOY_BRANCH"
           echo "Using compose command: $DC"
           echo "Using image: $AUTO_SERVICE_IMAGE"
+          
+          # Inject .env from GitHub Secrets
+          echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
+          # Ensure critical deployment variables are present
+          echo "AUTO_SERVICE_IMAGE=$AUTO_SERVICE_IMAGE" >> .env
+          
           pwd
           ls -la
-          AUTO_SERVICE_IMAGE=$AUTO_SERVICE_IMAGE $DC -f docker-compose.yml config
-          AUTO_SERVICE_IMAGE=$AUTO_SERVICE_IMAGE $DC -f docker-compose.yml down || true
+          $DC -f docker-compose.yml config
+          $DC -f docker-compose.yml down || true
           docker pull $AUTO_SERVICE_IMAGE
-          AUTO_SERVICE_IMAGE=$AUTO_SERVICE_IMAGE $DC -f docker-compose.yml up -d
+          $DC -f docker-compose.yml up -d

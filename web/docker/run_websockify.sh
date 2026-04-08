@@ -9,4 +9,4 @@ exec websockify \
   --web /usr/share/novnc/ \
   --token-plugin TokenFile \
   --token-source "$TOKEN_FILE" \
-  6080 127.0.0.1:5900
+  6080

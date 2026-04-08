@@ -36,6 +36,7 @@ services:
       - backend
     volumes:
       - browser_storage:/app/storage
+      - ./run_websockify.sh:/usr/local/bin/run_websockify.sh
 
 volumes:
   postgres_data:
