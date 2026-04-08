@@ -67,6 +67,9 @@ jobs:
           # Ensure critical deployment variables are present
           echo "AUTO_SERVICE_IMAGE=$AUTO_SERVICE_IMAGE" >> .env
           
+          # Fix permissions for mounted scripts
+          chmod +x run_websockify.sh
+          
           pwd
           ls -la
           $DC -f docker-compose.yml config
